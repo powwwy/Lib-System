@@ -143,23 +143,24 @@ public:
 };
 
 void displayMenu() {
+    int choice;
     cout << "Library System Menu :-)\n";
     cout << "1. Login as Member\n";
-    cout << "2. Login as Librarian\n";
+    cout << "2. Login as Book Keeper\n";
     cout << "3. Exit\n";
     cout << "Enter your choice: ";
 }
 
 // Function for member login
 void memberLogin() {
-    string username, password;
-    cout << "Enter Member Username: ";
-    cin >> username;
+    string id, password;
+    cout << "Enter Member ID: ";
+    cin >> id;
     cout << "Enter Member Password: ";
     cin >> password;
 
     // Simple check for member login (could be expanded with a database)
-    if (username == "member" && password == "memberpass") {
+    if (id == "member" && password == "memberpass") {
         cout << "Welcome, Member!" << endl;
     } else {
         cout << "Invalid login credentials. Try again!" << endl;
@@ -168,14 +169,14 @@ void memberLogin() {
 
 // Function for librarian login
 void librarianLogin() {
-    string username, password;
-    cout << "Enter Librarian Username: ";
-    cin >> username;
+    string id, password;
+    cout << "Enter Librarian ID: ";
+    cin >> id;
     cout << "Enter Librarian Password: ";
     cin >> password;
 
     // Simple check for librarian login (could be expanded with a database)
-    if (username == "librarian" && password == "librarianpass") {
+    if (id == "librarian" && password == "librarianpass") {
         cout << "Welcome, Librarian!" << endl;
     } else {
         cout << "Invalid login credentials. Try again!" << endl;
@@ -183,7 +184,10 @@ void librarianLogin() {
 }
 
 // Function for handling user input and actions
-void handleLoginChoice(int choice) {
+void handleLoginChoice() {
+    int choice;
+    cout<<"Enter choice: ";
+    cin>>choice;
     switch (choice) {
         case 1:
             memberLogin();
@@ -202,70 +206,7 @@ void handleLoginChoice(int choice) {
 
 
 int main() {
-    Library library;
-    BookKeeper keeper("1", "Alice", "admin123");
-    vector<Member> members;
-
-    int userType;
-    do {
-        cout << "\nWelcome to Library Management System";
-        cout << "\n1. BookKeeper Login";
-        cout << "\n2. Member Login or Register";
-        cout << "\n3. Exit";
-        cout << "\nEnter choice: ";
-        cin >> userType;
-        cin.ignore();
-
-        if (userType == 1) {
-            string id, password;
-            cout << "Enter ID: ";
-            cin >> id;
-            cout << "Enter Password: ";
-            cin >> password;
-            if (keeper.getId() == id && keeper.validatePassword(password)) {
-                cout << "BookKeeper logged in successfully." << endl;
-            } else {
-                cout << "Invalid credentials." << endl;
-            }
-        } else if (userType == 2) {
-            int subChoice;
-            cout << "\n1. Register as Member";
-            cout << "\n2. Login as Member";
-            cout << "\nEnter choice: ";
-            cin >> subChoice;
-            cin.ignore();
-
-            if (subChoice == 1) {
-                string id, name, password, address;
-                cout << "Enter ID: ";
-                cin >> id;
-                cin.ignore();
-                cout << "Enter Name: ";
-                getline(cin, name);
-                cout << "Enter Password: ";
-                cin >> password;
-                cout << "Enter Address: ";
-                cin.ignore();
-                getline(cin, address);
-                members.push_back(Member(id, name, password, address));
-                cout << "Registration successful!" << endl;
-            } else if (subChoice == 2) {
-                string id, password;
-                cout << "Enter ID: ";
-                cin >> id;
-                cout << "Enter Password: ";
-                cin >> password;
-                for (auto &member : members) {
-                    if (member.getId() == id && member.validatePassword(password)) {
-                        cout << "Member logged in successfully." << endl;
-                        break;
-                    }
-                }
-                cout << "Invalid credentials." << endl;
-            }
-        }
-    } while (userType != 3);
-    
-    cout << "Goodbye!" << endl;
+   displayMenu();
+   handleLoginChoice();
     return 0;
 }
