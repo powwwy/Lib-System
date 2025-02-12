@@ -167,6 +167,7 @@ int main() {
                 cout << "Invalid choice. Please try again.\n";
         }
     } while (choice != 5);
+cout<<"Thank you for using the Library Management System\n";
 
     return 0;
 }
