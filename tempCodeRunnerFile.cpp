@@ -2,7 +2,7 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <iomanip>
+#include <algorithm>
 
 using namespace std;
 
@@ -28,10 +28,8 @@ public:
         : book_id(id), title(title), author(author), copies(copies) {}
 
     void displayDetails() const {
-        cout << "| " << setw(4) << book_id
-             << " | " << setw(22) << title
-             << " | " << setw(18) << author
-             << " | " << setw(6) << copies << " |" << endl;
+        cout << "ID: " << book_id << " | " << title << " by " << author
+             << " | Copies: " << copies << endl;
     }
 };
 
@@ -94,14 +92,10 @@ public:
             cout << "\nNo books available in the library.\n";
             return;
         }
-        
-        cout << "\n----------------------------------------------" << endl;
-        cout << "| ID  | Title                  | Author              | Copies |" << endl;
-        cout << "----------------------------------------------" << endl;
+        cout << "\nLibrary Books:\n";
         for (const auto &book : books) {
             book.displayDetails();
         }
-        cout << "----------------------------------------------" << endl;
     }
 
     bool borrowBook(string book_id) {
@@ -217,4 +211,3 @@ int main() {
 
     return 0;
 }
-

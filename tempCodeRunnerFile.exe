@@ -1,12 +1,8 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <vector>
-#include <iomanip>
+#include <algorithm>
 
 using namespace std;
-
-const string FILE_NAME = "books.csv";
 
 // Base Class: Person
 class Person {
@@ -28,10 +24,8 @@ public:
         : book_id(id), title(title), author(author), copies(copies) {}
 
     void displayDetails() const {
-        cout << "| " << setw(4) << book_id
-             << " | " << setw(22) << title
-             << " | " << setw(18) << author
-             << " | " << setw(6) << copies << " |" << endl;
+        cout << "ID: " << book_id << " | " << title << " by " << author
+             << " | Copies: " << copies << endl;
     }
 };
 
@@ -41,37 +35,6 @@ private:
     vector<Book> books;
 
 public:
-    Library() { loadBooksFromCSV(); }
-
-    void loadBooksFromCSV() {
-        ifstream file(FILE_NAME);
-        if (!file.is_open()) {
-            cout << "No existing book data found.\n";
-            return;
-        }
-
-        string line;
-        while (getline(file, line)) {
-            stringstream ss(line);
-            string id, title, author, copiesStr;
-            getline(ss, id, ',');
-            getline(ss, title, ',');
-            getline(ss, author, ',');
-            getline(ss, copiesStr, ',');
-            int copies = stoi(copiesStr);
-            books.push_back(Book(id, title, author, copies));
-        }
-        file.close();
-    }
-
-    void saveBooksToCSV() {
-        ofstream file(FILE_NAME);
-        for (const auto &book : books) {
-            file << book.book_id << "," << book.title << "," << book.author << "," << book.copies << "\n";
-        }
-        file.close();
-    }
-
     void addBook() {
         string id, title, author;
         int copies;
@@ -85,7 +48,6 @@ public:
         cout << "Enter Number of Copies: ";
         cin >> copies;
         books.push_back(Book(id, title, author, copies));
-        saveBooksToCSV();
         cout << "Book added successfully!\n";
     }
 
@@ -94,21 +56,16 @@ public:
             cout << "\nNo books available in the library.\n";
             return;
         }
-        
-        cout << "\n----------------------------------------------" << endl;
-        cout << "| ID  | Title                  | Author              | Copies |" << endl;
-        cout << "----------------------------------------------" << endl;
-        for (const auto &book : books) {
+        cout << "\nLibrary Books:\n";
+        for (const auto& book : books) {
             book.displayDetails();
         }
-        cout << "----------------------------------------------" << endl;
     }
 
     bool borrowBook(string book_id) {
-        for (auto &book : books) {
+        for (auto& book : books) {
             if (book.book_id == book_id && book.copies > 0) {
                 book.copies--;
-                saveBooksToCSV();
                 return true;
             }
         }
@@ -116,10 +73,9 @@ public:
     }
 
     bool returnBook(string book_id) {
-        for (auto &book : books) {
+        for (auto& book : books) {
             if (book.book_id == book_id) {
                 book.copies++;
-                saveBooksToCSV();
                 return true;
             }
         }
@@ -211,10 +167,8 @@ int main() {
                 cout << "Invalid choice. Please try again.\n";
         }
     } while (choice != 5);
-
-    cout << "Thank you for using the Library Management System\n";
-    cout << "Goodbye\n";
+cout<<"Thank you for using the Library Management System\n";
+cout<<"Goodbye\n";
 
     return 0;
 }
-
