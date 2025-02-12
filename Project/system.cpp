@@ -168,6 +168,7 @@ int main() {
         }
     } while (choice != 5);
 cout<<"Thank you for using the Library Management System\n";
+cout<<"Goodbye\n";
 
     return 0;
 }
