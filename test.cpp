@@ -145,38 +145,168 @@ public:
 void displayMenu() {
     cout << "Library System Menu :-)\n";
     cout << "1. Login as Member\n";
-    cout << "2. Login as Librarian\n";
+    cout << "2. Login as Book Keeper\n";
     cout << "3. Exit\n";
     cout << "Enter your choice: ";
 }
 
 // Function for member login
 void memberLogin() {
-    string username, password;
-    cout << "Enter Member Username: ";
-    cin >> username;
+    string id, password;
+    cout << "Enter Member ID: ";
+    cin >> id;
     cout << "Enter Member Password: ";
     cin >> password;
 
     // Simple check for member login (could be expanded with a database)
-    if (username == "member" && password == "memberpass") {
+    if (id == "member" && password == "memberpass") {
         cout << "Welcome, Member!" << endl;
     } else {
         cout << "Invalid login credentials. Try again!" << endl;
     }
 }
+// Function to display the menu for member options
+void memberMenu() {
+    cout << "\nMember Menu:\n";
+    cout << "1. View Books by Genre\n";
+    cout << "2. Borrow Book\n";
+    cout << "3. Return Book\n";
+    cout << "4. Exit Member Menu\n";
+    cout << "Enter your choice: ";
+}
 
-// Function for librarian login
-void librarianLogin() {
-    string username, password;
-    cout << "Enter Librarian Username: ";
-    cin >> username;
-    cout << "Enter Librarian Password: ";
+// Function to display genres available
+void displayGenres() {
+    cout << "\nAvailable Genres:\n";
+    cout << "1. Fiction\n";
+    cout << "2. Science\n";
+    cout << "3. History\n";
+    cout << "4. Horror\n";
+    cout << "5. Action\n";
+    cout << "6. Thriller\n";
+    cout << "7. Romance\n";
+    cout << "8. Exit\n";
+}
+
+// Function to display books by genre
+void viewBooksByGenre(const vector<Book>& books, const string& genre) {
+    cout << "\nBooks in " << genre << " genre:\n";
+    bool found = false;
+    for (const auto& book : books) {
+        if (book.genre == genre && !book.isBorrowed) {
+            cout << "Title: " << book.title << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No books available in this genre right now.\n";
+    }
+}
+
+// Function to borrow a book
+void borrowBook(vector<Book>& books) {
+    string bookTitle;
+    cout << "Enter the title of the book you want to borrow: ";
+    cin.ignore(); // to clear the newline character from the buffer
+    getline(cin, bookTitle);
+
+    for (auto& book : books) {
+        if (book.title == bookTitle && !book.isBorrowed) {
+            book.isBorrowed = true;
+            cout << "You have successfully borrowed the book: " << book.title << "\n";
+            return;
+        }
+    }
+    cout << "The book is either unavailable or already borrowed.\n";
+}
+
+// Function to return a borrowed book
+void returnBook(vector<Book>& books) {
+    string bookTitle;
+    cout << "Enter the title of the book you want to return: ";
+    cin.ignore(); // to clear the newline character from the buffer
+    getline(cin, bookTitle);
+
+    for (auto& book : books) {
+        if (book.title == bookTitle && book.isBorrowed) {
+            book.isBorrowed = false;
+            cout << "You have successfully returned the book: " << book.title << "\n";
+            return;
+        }
+    }
+    cout << "The book was not borrowed or does not exist.\n";
+}
+
+// Function to handle member login and actions
+void memberLogin(vector<Book>& books) {
+    int memberChoice;
+    while (true) {
+        memberMenu();
+        cin >> memberChoice;
+
+        switch (memberChoice) {
+            case 1: {
+                int genreChoice;
+                displayGenres();
+                cin >> genreChoice;
+
+                switch (genreChoice) {
+                    case 1:
+                        viewBooksByGenre(books, "Fiction");
+                        break;
+                    case 2:
+                        viewBooksByGenre(books, "Science");
+                        break;
+                    case 3:
+                        viewBooksByGenre(books, "History");
+                        break;
+                    case 4:
+                        viewBooksByGenre(books, "Horror");
+                        break;
+                    case 5:
+                        viewBooksByGenre(books, "Action");
+                        break;
+                    case 6:
+                        viewBooksByGenre(books, "Thriller");
+                        break;
+                    case 7:
+                        viewBooksByGenre(books, "Romance");
+                        break;
+                    case 8:
+                        cout << "Exiting...\n";
+                        break;
+                    default:
+                        cout << "Invalid choice! Please try again.\n";
+                }
+                break;
+            }
+            case 2:
+                borrowBook(books);
+                break;
+            case 3:
+                returnBook(books);
+                break;
+            case 4:
+                cout << "Exiting Member Menu.\n";
+                return;  // Exit member menu and go back to the main menu
+            default:
+                cout << "Invalid choice! Please try again.\n";
+        }
+    }
+}
+
+
+// Function for Book Keeper login
+void booKeeperLogin() {
+    string id, password;
+    cout << "Enter Book Keeper ID: ";
+    cin >> id;
+    cout << "Enter Book Keeper Password: ";
     cin >> password;
 
-    // Simple check for librarian login (could be expanded with a database)
-    if (username == "librarian" && password == "librarianpass") {
-        cout << "Welcome, Librarian!" << endl;
+    // Simple check for Book Keeper login (could be expanded with a database)
+    if (id == "librarian" && password == "librarianpass") {
+        cout << "Welcome, Book Keeper!" << endl;
     } else {
         cout << "Invalid login credentials. Try again!" << endl;
     }
@@ -189,7 +319,7 @@ void handleLoginChoice(int choice) {
             memberLogin();
             break;
         case 2:
-            librarianLogin();
+        booKeeperLogin();
             break;
         case 3:
             cout << "Exiting the system. Goodbye!" << endl;
