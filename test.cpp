@@ -40,8 +40,14 @@ public:
 class Library {
 private:
     vector<Book> books;
+    vector<Person> users;
+    vector<string> logs;
 
 public:
+    void addUser(const Person &user) {
+        users.push_back(user);
+    }
+
     void addBook() {
         string id, name, isbn, author, genre;
         int year, copiesAvailable;
@@ -70,6 +76,7 @@ public:
         cin.ignore();
 
         books.push_back(Book(id, name, isbn, author, year, genre, copiesAvailable));
+        logs.push_back("Book added: " + name);
         cout << "Book added successfully!\n";
     }
 
@@ -84,42 +91,26 @@ public:
         }
     }
 
-    void viewBooksByGenre(const string &genre) const {
-        cout << "\nBooks in " << genre << " genre:\n";
-        bool found = false;
-        for (const auto &book : books) {
-            if (book.genre == genre && book.copiesAvailable > 0) {
-                book.displayDetails();
-                found = true;
-            }
+    void viewUsers() const {
+        if (users.empty()) {
+            cout << "No users registered.\n";
+            return;
         }
-        if (!found) {
-            cout << "No books available in this genre right now.\n";
+        cout << "\nRegistered Users:\n";
+        for (const auto &user : users) {
+            cout << "ID: " << user.getId() << " | Name: " << user.getName() << endl;
         }
     }
 
-    void borrowBook(const string &bookTitle) {
-        for (auto &book : books) {
-            if (book.name == bookTitle && book.copiesAvailable > 0) {
-                book.copiesAvailable--;
-                book.copiesBorrowed++;
-                cout << "You have successfully borrowed the book: " << book.name << "\n";
-                return;
-            }
+    void viewLogs() const {
+        if (logs.empty()) {
+            cout << "No system logs available.\n";
+            return;
         }
-        cout << "The book is either unavailable or already borrowed.\n";
-    }
-
-    void returnBook(const string &bookTitle) {
-        for (auto &book : books) {
-            if (book.name == bookTitle && book.copiesBorrowed > 0) {
-                book.copiesAvailable++;
-                book.copiesBorrowed--;
-                cout << "You have successfully returned the book: " << book.name << "\n";
-                return;
-            }
+        cout << "\nSystem Logs:\n";
+        for (const auto &log : logs) {
+            cout << log << endl;
         }
-        cout << "The book was not borrowed or does not exist.\n";
     }
 };
 
@@ -130,13 +121,33 @@ public:
 };
 
 // Function for librarian login
-void librarianLogin(BookKeeper &keeper, Library &library) {
+template <typename T>
+T* login(vector<T> &users, string role) {
+    string id, password;
+    cout << "Enter " << role << " ID: ";
+    cin >> id;
+    cout << "Enter Password: ";
+    cin >> password;
+
+    for (auto &user : users) {
+        if (user.getId() == id && user.validatePassword(password)) {
+            cout << "Login successful!\n";
+            return &user;
+        }
+    }
+    cout << "Invalid credentials!\n";
+    return nullptr;
+}
+
+void librarianMenu(BookKeeper &keeper, Library &library) {
     int choice;
     do {
         cout << "\nBookKeeper Menu:";
         cout << "\n1. Add Book";
         cout << "\n2. View Books";
-        cout << "\n3. Logout";
+        cout << "\n3. View System Logs";
+        cout << "\n4. View Users";
+        cout << "\n5. Logout";
         cout << "\nEnter your choice: ";
         cin >> choice;
         cin.ignore();
@@ -149,64 +160,30 @@ void librarianLogin(BookKeeper &keeper, Library &library) {
             library.viewBooks();
             break;
         case 3:
-            cout << "Logging out...\n";
-            return;
-        default:
-            cout << "Invalid choice. Try again.\n";
-        }
-    } while (choice != 3);
-}
-
-// Function for member login
-void memberLogin(Library &library) {
-    int choice;
-    do {
-        cout << "\nMember Menu:";
-        cout << "\n1. View Books by Genre";
-        cout << "\n2. Borrow Book";
-        cout << "\n3. Return Book";
-        cout << "\n4. Logout";
-        cout << "\nEnter your choice: ";
-        cin >> choice;
-        cin.ignore();
-
-        switch (choice) {
-        case 1: {
-            string genre;
-            cout << "Enter genre: ";
-            getline(cin, genre);
-            library.viewBooksByGenre(genre);
+            library.viewLogs();
             break;
-        }
-        case 2: {
-            string bookTitle;
-            cout << "Enter book title to borrow: ";
-            getline(cin, bookTitle);
-            library.borrowBook(bookTitle);
-            break;
-        }
-        case 3: {
-            string bookTitle;
-            cout << "Enter book title to return: ";
-            getline(cin, bookTitle);
-            library.returnBook(bookTitle);
-            break;
-        }
         case 4:
+            library.viewUsers();
+            break;
+        case 5:
             cout << "Logging out...\n";
             return;
         default:
             cout << "Invalid choice. Try again.\n";
         }
-    } while (choice != 4);
+    } while (true);
 }
 
-// Main function
 int main() {
     Library library;
-    BookKeeper keeper("1001", "Myrk", "iamadmin");
-    int choice;
+    vector<BookKeeper> bookkeepers = {BookKeeper("1001", "Myrk", "iamadmin")};
+    vector<Person> members = {Person("2001", "Alice", "mypassword"), Person("2002", "Bob", "1234")};
 
+    for (auto &member : members) {
+        library.addUser(member);
+    }
+
+    int choice;
     do {
         cout << "\nLibrary System Menu:";
         cout << "\n1. Login as Member";
@@ -217,12 +194,20 @@ int main() {
         cin.ignore();
 
         switch (choice) {
-        case 1:
-            memberLogin(library);
+        case 1: {
+            Person *member = login(members, "Member");
+            if (member) {
+                cout << "Welcome, " << member->getName() << "!\n";
+            }
             break;
-        case 2:
-            librarianLogin(keeper, library);
+        }
+        case 2: {
+            BookKeeper *keeper = login(bookkeepers, "Book Keeper");
+            if (keeper) {
+                librarianMenu(*keeper, library);
+            }
             break;
+        }
         case 3:
             cout << "Exiting the system. Goodbye!\n";
             return 0;
