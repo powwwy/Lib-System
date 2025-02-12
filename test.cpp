@@ -142,6 +142,65 @@ public:
     }
 };
 
+void displayMenu() {
+    cout << "Library System Menu :-)\n";
+    cout << "1. Login as Member\n";
+    cout << "2. Login as Librarian\n";
+    cout << "3. Exit\n";
+    cout << "Enter your choice: ";
+}
+
+// Function for member login
+void memberLogin() {
+    string username, password;
+    cout << "Enter Member Username: ";
+    cin >> username;
+    cout << "Enter Member Password: ";
+    cin >> password;
+
+    // Simple check for member login (could be expanded with a database)
+    if (username == "member" && password == "memberpass") {
+        cout << "Welcome, Member!" << endl;
+    } else {
+        cout << "Invalid login credentials. Try again!" << endl;
+    }
+}
+
+// Function for librarian login
+void librarianLogin() {
+    string username, password;
+    cout << "Enter Librarian Username: ";
+    cin >> username;
+    cout << "Enter Librarian Password: ";
+    cin >> password;
+
+    // Simple check for librarian login (could be expanded with a database)
+    if (username == "librarian" && password == "librarianpass") {
+        cout << "Welcome, Librarian!" << endl;
+    } else {
+        cout << "Invalid login credentials. Try again!" << endl;
+    }
+}
+
+// Function for handling user input and actions
+void handleLoginChoice(int choice) {
+    switch (choice) {
+        case 1:
+            memberLogin();
+            break;
+        case 2:
+            librarianLogin();
+            break;
+        case 3:
+            cout << "Exiting the system. Goodbye!" << endl;
+            break;
+        default:
+            cout << "Invalid choice! Please enter a valid option." << endl;
+            break;
+    }
+}
+
+
 int main() {
     Library library;
     BookKeeper keeper("1", "Alice", "admin123");
