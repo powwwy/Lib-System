@@ -120,6 +120,112 @@ public:
     BookKeeper(string id, string name, string password) : Person(id, name, password) {}
 };
 
+<<<<<<< HEAD
+// Member Class
+class Member : public Person {
+private:
+    string address;
+    vector<string> booksBorrowed;
+    vector<string> booksOverdue;
+    map<string, int> genreCount;
+    string commonGenre;
+    vector<string> reviews;
+
+    void updateCommonGenre() {
+        int maxCount = 0;
+        for (const auto& pair : genreCount) {
+            if (pair.second > maxCount) {
+                maxCount = pair.second;
+                commonGenre = pair.first;
+            }
+        }
+    }
+
+public:
+    Member(string id, string name, string password, string address)
+        : Person(id, name, password), address(address) {}
+
+    void borrowBook(string bookTitle, string genre) {
+        booksBorrowed.push_back(bookTitle);
+        genreCount[genre]++;
+        updateCommonGenre();
+    }
+
+    void returnBook(string bookTitle) {
+        auto it = find(booksBorrowed.begin(), booksBorrowed.end(), bookTitle);
+        if (it != booksBorrowed.end()) {
+            booksBorrowed.erase(it);
+        }
+    }
+
+    void markOverdue(string bookTitle) {
+        booksOverdue.push_back(bookTitle);
+    }
+};
+
+// Borrow Class
+
+class Borrow {
+    private:
+        static unordered_map<string, int> bookCount; // To track the number of copies borrowed per book
+        static int totalBorrowedBooks; // To track the total number of books borrowed by a member
+    
+    public:
+        Book book;
+        Member member;
+        string dueDate;
+    
+        Borrow(Book book, Member member, string dueDate)
+            : book(book), member(member), dueDate(dueDate) {}
+    
+        bool borrowBook() {
+            // Check if the member already borrowed 5 books
+            if (totalBorrowedBooks >= 5) {
+                cout << "Error: You have already borrowed the maximum number of books." << endl;
+                return false;
+            }
+    
+            // Check if the member has borrowed 3 copies of the same book
+            if (bookCount[book.name] >= 3) {
+                cout << "Error: You can only borrow a maximum of 3 copies of the same book." << endl;
+                return false;
+            }
+    
+            // If both conditions are passed, the book can be borrowed
+            bookCount[book.name]++;
+            totalBorrowedBooks++;
+            cout << "Book: " << book.name << " | Borrowed by: " << member.getName()
+                 << " | Due Date: " << dueDate << endl;
+            return true;
+        }
+    };
+
+void displayMenu() {
+    cout << "Library System Menu :-)\n";
+    cout << "1. Login as Member\n";
+    cout << "2. Login as Librarian\n";
+    cout << "3. Exit\n";
+    cout << "Enter your choice: ";
+}
+
+// Function for member login
+void memberLogin() {
+    string username, password;
+    cout << "Enter Member Username: ";
+    cin >> username;
+    cout << "Enter Member Password: ";
+    cin >> password;
+
+    // Simple check for member login (could be expanded with a database)
+    if (username == "member" && password == "memberpass") {
+        cout << "Welcome, Member!" << endl;
+    } else {
+        cout << "Invalid login credentials. Try again!" << endl;
+    }
+}
+
+=======
+>>>>>>> 2c8fcfcc264877be28bd65377a48469074479acd
 // Function for librarian login
 template <typename T>
 T* login(vector<T> &users, string role) {
@@ -201,6 +307,28 @@ int main() {
             }
             break;
         }
+<<<<<<< HEAD
+    } while (userType != 3);
+
+    Book book1("C++ Programming");
+    Book book2("Data Structures");
+    Member member1("Ayman");
+
+    Borrow borrow1(book1, member1, "2025-03-01");
+    borrow1.borrowBook(); // Successful borrow
+
+    Borrow borrow2(book1, member1, "2025-03-05");
+    borrow2.borrowBook(); // Successful borrow
+
+    Borrow borrow3(book1, member1, "2025-03-10");
+    borrow3.borrowBook(); // Successful borrow
+
+    Borrow borrow4(book1, member1, "2025-03-15");
+    borrow4.borrowBook();
+    
+    cout << "Goodbye!" << endl;
+    return 0;
+=======
         case 2: {
             BookKeeper *keeper = login(bookkeepers, "Book Keeper");
             if (keeper) {
@@ -215,4 +343,5 @@ int main() {
             cout << "Invalid choice! Try again.\n";
         }
     } while (true);
+>>>>>>> 2c8fcfcc264877be28bd65377a48469074479acd
 }
