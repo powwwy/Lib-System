@@ -3,6 +3,7 @@
 #include <sstream>
 #include <vector>
 #include <algorithm>
+#include <map>
 
 using namespace std;
 
@@ -23,70 +24,46 @@ public:
 // Book Class
 class Book {
 public:
-    string book_id, title, author;
-    int copies;
+    string book_id, name, ISBN, author, genre;
+    int year, copiesAvailable, copiesBorrowed;
+    vector<string> reviews;
 
-    Book(string id, string title, string author, int copies)
-        : book_id(id), title(title), author(author), copies(copies) {}
+    Book(string id, string name, string isbn, string author, int year, string genre, int copiesAvailable)
+        : book_id(id), name(name), ISBN(isbn), author(author), year(year), genre(genre),
+          copiesAvailable(copiesAvailable), copiesBorrowed(0) {}
 
     void displayDetails() const {
-        cout << "ID: " << book_id << " | " << title << " by " << author
-             << " | Copies: " << copies << endl;
+        cout << "ID: " << book_id << " | " << name << " by " << author
+             << " | Year: " << year << " | Genre: " << genre
+             << " | ISBN: " << ISBN
+             << " | Available Copies: " << copiesAvailable
+             << " | Borrowed Copies: " << copiesBorrowed << endl;
+    }
+
+    void addReview(const string &review) {
+        reviews.push_back(review);
+    }
+
+    void displayReviews() const {
+        if (reviews.empty()) {
+            cout << "No reviews available for this book.\n";
+        } else {
+            cout << "Reviews for " << name << ":\n";
+            for (const auto &review : reviews) {
+                cout << "- " << review << endl;
+            }
+        }
     }
 };
 
-// Library Class (Manages Books)
+// Library Class
 class Library {
 private:
     vector<Book> books;
 
 public:
-    Library() { loadBooksFromCSV(); }
-
-    void loadBooksFromCSV() {
-        ifstream file(FILE_NAME);
-        if (!file.is_open()) {
-            cout << "No existing book data found.\n";
-            return;
-        }
-
-        string line;
-        while (getline(file, line)) {
-            stringstream ss(line);
-            string id, title, author, copiesStr;
-            getline(ss, id, ',');
-            getline(ss, title, ',');
-            getline(ss, author, ',');
-            getline(ss, copiesStr, ',');
-            int copies = stoi(copiesStr);
-            books.push_back(Book(id, title, author, copies));
-        }
-        file.close();
-    }
-
-    void saveBooksToCSV() {
-        ofstream file(FILE_NAME);
-        for (const auto &book : books) {
-            file << book.book_id << "," << book.title << "," << book.author << "," << book.copies << "\n";
-        }
-        file.close();
-    }
-
-    void addBook() {
-        string id, title, author;
-        int copies;
-        cout << "\nEnter Book ID: ";
-        cin >> id;
-        cin.ignore();
-        cout << "Enter Book Title: ";
-        getline(cin, title);
-        cout << "Enter Author: ";
-        getline(cin, author);
-        cout << "Enter Number of Copies: ";
-        cin >> copies;
-        books.push_back(Book(id, title, author, copies));
-        saveBooksToCSV();
-        cout << "Book added successfully!\n";
+    void addBook(const Book& book) {
+        books.push_back(book);
     }
 
     void viewBooks() const {
@@ -109,65 +86,125 @@ public:
 
 // Member Class
 class Member : public Person {
+private:
+    string address;
+    vector<string> booksBorrowed;
+    vector<string> booksOverdue;
+    map<string, int> genreCount;
+    string commonGenre;
+    vector<string> reviews;
+
+    void updateCommonGenre() {
+        int maxCount = 0;
+        for (const auto& pair : genreCount) {
+            if (pair.second > maxCount) {
+                maxCount = pair.second;
+                commonGenre = pair.first;
+            }
+        }
+    }
+
 public:
-    Member(string id, string name, string password) : Person(id, name, password) {}
+    Member(string id, string name, string password, string address)
+        : Person(id, name, password), address(address) {}
+
+    void borrowBook(string bookTitle, string genre) {
+        booksBorrowed.push_back(bookTitle);
+        genreCount[genre]++;
+        updateCommonGenre();
+    }
+
+    void returnBook(string bookTitle) {
+        auto it = find(booksBorrowed.begin(), booksBorrowed.end(), bookTitle);
+        if (it != booksBorrowed.end()) {
+            booksBorrowed.erase(it);
+        }
+    }
+
+    void markOverdue(string bookTitle) {
+        booksOverdue.push_back(bookTitle);
+    }
 };
 
-vector<Member> members;
+// Borrow Class
+class Borrow {
+public:
+    Book book;
+    Member member;
+    string dueDate;
 
-void memberMenu(Member &member, Library &library) {
-    int choice;
-    do {
-        cout << "\nMember Menu:";
-        cout << "\n1. View Books";
-        cout << "\n2. Logout";
-        cout << "\nEnter your choice: ";
-        cin >> choice;
-        cin.ignore();
+    Borrow(Book book, Member member, string dueDate)
+        : book(book), member(member), dueDate(dueDate) {}
 
-        switch (choice) {
-            case 1:
-                library.viewBooks();
-                break;
-            case 2:
-                cout << "Logging out...\n";
-                return;
-            default:
-                cout << "Invalid choice. Try again.\n";
-        }
-    } while (choice != 2);
+    void displayBorrowDetails() const {
+        cout << "Book: " << book.name << " | Borrowed by: " << member.getName()
+             << " | Due Date: " << dueDate << endl;
+    }
+};
+
+void displayMenu() {
+    cout << "Library System Menu :-)\n";
+    cout << "1. Login as Member\n";
+    cout << "2. Login as Librarian\n";
+    cout << "3. Exit\n";
+    cout << "Enter your choice: ";
 }
 
-void bookKeeperMenu(BookKeeper &keeper, Library &library) {
-    int choice;
-    do {
-        cout << "\nBookKeeper Menu:";
-        cout << "\n1. Add Book";
-        cout << "\n2. View Books";
-        cout << "\n3. Logout";
-        cout << "\nEnter your choice: ";
-        cin >> choice;
-        cin.ignore();
+// Function for member login
+void memberLogin() {
+    string username, password;
+    cout << "Enter Member Username: ";
+    cin >> username;
+    cout << "Enter Member Password: ";
+    cin >> password;
 
-        switch (choice) {
-            case 1:
-                library.addBook();
-                break;
-            case 2:
-                library.viewBooks();
-                break;
-            case 3:
-                cout << "Logging out...\n";
-                return;
-            default:
-                cout << "Invalid choice. Try again.\n";
-        }
-    } while (choice != 3);
+    // Simple check for member login (could be expanded with a database)
+    if (username == "member" && password == "memberpass") {
+        cout << "Welcome, Member!" << endl;
+    } else {
+        cout << "Invalid login credentials. Try again!" << endl;
+    }
 }
+
+// Function for librarian login
+void librarianLogin() {
+    string username, password;
+    cout << "Enter Librarian Username: ";
+    cin >> username;
+    cout << "Enter Librarian Password: ";
+    cin >> password;
+
+    // Simple check for librarian login (could be expanded with a database)
+    if (username == "librarian" && password == "librarianpass") {
+        cout << "Welcome, Librarian!" << endl;
+    } else {
+        cout << "Invalid login credentials. Try again!" << endl;
+    }
+}
+
+// Function for handling user input and actions
+void handleLoginChoice(int choice) {
+    switch (choice) {
+        case 1:
+            memberLogin();
+            break;
+        case 2:
+            librarianLogin();
+            break;
+        case 3:
+            cout << "Exiting the system. Goodbye!" << endl;
+            break;
+        default:
+            cout << "Invalid choice! Please enter a valid option." << endl;
+            break;
+    }
+}
+
 
 int main() {
     Library library;
     BookKeeper keeper("1", "Alice", "admin123");
+    vector<Member> members;
 
     int userType;
     do {
@@ -186,9 +223,9 @@ int main() {
             cout << "Enter Password: ";
             cin >> password;
             if (keeper.getId() == id && keeper.validatePassword(password)) {
-                bookKeeperMenu(keeper, library);
+                cout << "BookKeeper logged in successfully." << endl;
             } else {
-                cout << "Invalid credentials.\n";
+                cout << "Invalid credentials." << endl;
             }
         } else if (userType == 2) {
             int subChoice;
@@ -199,7 +236,7 @@ int main() {
             cin.ignore();
 
             if (subChoice == 1) {
-                string id, name, password;
+                string id, name, password, address;
                 cout << "Enter ID: ";
                 cin >> id;
                 cin.ignore();
@@ -207,8 +244,11 @@ int main() {
                 getline(cin, name);
                 cout << "Enter Password: ";
                 cin >> password;
-                members.push_back(Member(id, name, password));
-                cout << "Registration successful!\n";
+                cout << "Enter Address: ";
+                cin.ignore();
+                getline(cin, address);
+                members.push_back(Member(id, name, password, address));
+                cout << "Registration successful!" << endl;
             } else if (subChoice == 2) {
                 string id, password;
                 cout << "Enter ID: ";
@@ -217,14 +257,15 @@ int main() {
                 cin >> password;
                 for (auto &member : members) {
                     if (member.getId() == id && member.validatePassword(password)) {
-                        memberMenu(member, library);
+                        cout << "Member logged in successfully." << endl;
                         break;
                     }
                 }
-                cout << "Invalid credentials.\n";
+                cout << "Invalid credentials." << endl;
             }
         }
     } while (userType != 3);
-    cout << "Goodbye!\n";
+    
+    cout << "Goodbye!" << endl;
     return 0;
 }
