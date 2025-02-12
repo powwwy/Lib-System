@@ -2,11 +2,14 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
+#include <iomanip>
 #include <algorithm>
 
 using namespace std;
 
-const string FILE_NAME = "books.csv";
+const string BOOKS_FILE = "books.csv";
+const string MEMBERS_FILE = "members.csv";
+const string BORROWED_FILE = "borrowed_books.csv";
 
 // Base Class: Person
 class Person {
@@ -21,15 +24,21 @@ public:
 // Book Class
 class Book {
 public:
-    string book_id, title, author;
-    int copies;
+    string book_id, title, ISBN, author, genre;
+    int availableCopies, borrowedCopies, year;
+    double score;
 
-    Book(string id, string title, string author, int copies)
-        : book_id(id), title(title), author(author), copies(copies) {}
+    Book(string id, string title, string ISBN, string author, string genre, int available, int borrowed, int year, double score)
+        : book_id(id), title(title), ISBN(ISBN), author(author), genre(genre), availableCopies(available), borrowedCopies(borrowed), year(year), score(score) {}
 
     void displayDetails() const {
-        cout << "ID: " << book_id << " | " << title << " by " << author
-             << " | Copies: " << copies << endl;
+        cout << "| " << setw(4) << book_id
+             << " | " << setw(22) << title
+             << " | " << setw(13) << author
+             << " | " << setw(6) << availableCopies
+             << " | " << setw(6) << borrowedCopies
+             << " | " << setw(4) << year
+             << " | " << setw(4) << score << " |" << endl;
     }
 };
 
@@ -42,7 +51,7 @@ public:
     Library() { loadBooksFromCSV(); }
 
     void loadBooksFromCSV() {
-        ifstream file(FILE_NAME);
+        ifstream file(BOOKS_FILE);
         if (!file.is_open()) {
             cout << "No existing book data found.\n";
             return;
@@ -51,40 +60,35 @@ public:
         string line;
         while (getline(file, line)) {
             stringstream ss(line);
-            string id, title, author, copiesStr;
+            string id, title, ISBN, author, genre, availableStr, borrowedStr, yearStr, scoreStr;
             getline(ss, id, ',');
             getline(ss, title, ',');
+            getline(ss, ISBN, ',');
             getline(ss, author, ',');
-            getline(ss, copiesStr, ',');
-            int copies = stoi(copiesStr);
-            books.push_back(Book(id, title, author, copies));
+            getline(ss, genre, ',');
+            getline(ss, availableStr, ',');
+            getline(ss, borrowedStr, ',');
+            getline(ss, yearStr, ',');
+            getline(ss, scoreStr, ',');
+
+            int available = stoi(availableStr);
+            int borrowed = stoi(borrowedStr);
+            int year = stoi(yearStr);
+            double score = stod(scoreStr);
+
+            books.push_back(Book(id, title, ISBN, author, genre, available, borrowed, year, score));
         }
         file.close();
     }
 
     void saveBooksToCSV() {
-        ofstream file(FILE_NAME);
+        ofstream file(BOOKS_FILE);
         for (const auto &book : books) {
-            file << book.book_id << "," << book.title << "," << book.author << "," << book.copies << "\n";
+            file << book.book_id << "," << book.title << "," << book.ISBN << "," << book.author << ","
+                 << book.genre << "," << book.availableCopies << "," << book.borrowedCopies << ","
+                 << book.year << "," << book.score << "\n";
         }
         file.close();
-    }
-
-    void addBook() {
-        string id, title, author;
-        int copies;
-        cout << "\nEnter Book ID: ";
-        cin >> id;
-        cin.ignore();
-        cout << "Enter Book Title: ";
-        getline(cin, title);
-        cout << "Enter Author: ";
-        getline(cin, author);
-        cout << "Enter Number of Copies: ";
-        cin >> copies;
-        books.push_back(Book(id, title, author, copies));
-        saveBooksToCSV();
-        cout << "Book added successfully!\n";
     }
 
     void viewBooks() const {
@@ -92,16 +96,33 @@ public:
             cout << "\nNo books available in the library.\n";
             return;
         }
-        cout << "\nLibrary Books:\n";
+
+        cout << "\n-------------------------------------------------------------------" << endl;
+        cout << "| ID  | Title                  | Author       | Avail | Brwd | Year | Rate |" << endl;
+        cout << "-------------------------------------------------------------------" << endl;
         for (const auto &book : books) {
             book.displayDetails();
         }
+        cout << "-------------------------------------------------------------------" << endl;
+    }
+
+    void addBook(Book book) {
+        books.push_back(book);
+        saveBooksToCSV();
+        cout << "Book added successfully!\n";
+    }
+
+    void removeBook(string book_id) {
+        books.erase(remove_if(books.begin(), books.end(), [&](Book &b) { return b.book_id == book_id; }), books.end());
+        saveBooksToCSV();
+        cout << "Book removed successfully!\n";
     }
 
     bool borrowBook(string book_id) {
         for (auto &book : books) {
-            if (book.book_id == book_id && book.copies > 0) {
-                book.copies--;
+            if (book.book_id == book_id && book.availableCopies > 0) {
+                book.availableCopies--;
+                book.borrowedCopies++;
                 saveBooksToCSV();
                 return true;
             }
@@ -112,7 +133,8 @@ public:
     bool returnBook(string book_id) {
         for (auto &book : books) {
             if (book.book_id == book_id) {
-                book.copies++;
+                book.availableCopies++;
+                book.borrowedCopies--;
                 saveBooksToCSV();
                 return true;
             }
@@ -125,6 +147,45 @@ public:
 class BookKeeper : public Person {
 public:
     BookKeeper(string name, string password) : Person(name, password) {}
+
+    void addBook(Library &library) {
+        string id, title, ISBN, author, genre;
+        int available, borrowed, year;
+        double score;
+        cout << "\nEnter Book ID: ";
+        cin >> id;
+        cin.ignore();
+        cout << "Enter Title: ";
+        getline(cin, title);
+        cout << "Enter ISBN: ";
+        cin >> ISBN;
+        cin.ignore();
+        cout << "Enter Author: ";
+        getline(cin, author);
+        cout << "Enter Genre: ";
+        getline(cin, genre);
+        cout << "Enter Available Copies: ";
+        cin >> available;
+        cout << "Enter Borrowed Copies: ";
+        cin >> borrowed;
+        cout << "Enter Year: ";
+        cin >> year;
+        cout << "Enter Rating (Score): ";
+        cin >> score;
+
+        library.addBook(Book(id, title, ISBN, author, genre, available, borrowed, year, score));
+    }
+
+    void removeBook(Library &library) {
+        string book_id;
+        cout << "Enter Book ID to Remove: ";
+        cin >> book_id;
+        library.removeBook(book_id);
+    }
+
+    void viewSystem(Library &library) {
+        library.viewBooks();
+    }
 };
 
 // Member Class
@@ -135,18 +196,17 @@ private:
 public:
     Member(string name, string password) : Person(name, password) {}
 
-    bool borrowBook(string book_id) {
-        if (booksBorrowed.size() < 5) {
+    bool borrowBook(Library &library, string book_id) {
+        if (booksBorrowed.size() < 5 && library.borrowBook(book_id)) {
             booksBorrowed.push_back(book_id);
             return true;
         }
         return false;
     }
 
-    bool returnBook(string book_id) {
-        auto it = find(booksBorrowed.begin(), booksBorrowed.end(), book_id);
-        if (it != booksBorrowed.end()) {
-            booksBorrowed.erase(it);
+    bool returnBook(Library &library, string book_id) {
+        if (library.returnBook(book_id)) {
+            booksBorrowed.erase(remove(booksBorrowed.begin(), booksBorrowed.end(), book_id), booksBorrowed.end());
             return true;
         }
         return false;
@@ -161,53 +221,19 @@ int main() {
 
     int choice;
     do {
-        cout << "\nLibrary Management System";
-        cout << "\n1. Add Book";
-        cout << "\n2. View Books";
-        cout << "\n3. Borrow Book";
-        cout << "\n4. Return Book";
-        cout << "\n5. Exit";
-        cout << "\nEnter your choice: ";
+        cout << "\n1. Add Book\n2. Remove Book\n3. View Books\n4. Borrow Book\n5. Return Book\n6. Exit\nEnter choice: ";
         cin >> choice;
-        cin.ignore();
 
         switch (choice) {
-            case 1:
-                library.addBook();
-                break;
-            case 2:
-                library.viewBooks();
-                break;
-            case 3: {
-                string book_id;
-                cout << "Enter Book ID to Borrow: ";
-                cin >> book_id;
-                if (member.borrowBook(book_id) && library.borrowBook(book_id))
-                    cout << "Book borrowed successfully!\n";
-                else
-                    cout << "Failed to borrow book. Either it is unavailable or limit reached.\n";
-                break;
-            }
-            case 4: {
-                string book_id;
-                cout << "Enter Book ID to Return: ";
-                cin >> book_id;
-                if (member.returnBook(book_id) && library.returnBook(book_id))
-                    cout << "Book returned successfully!\n";
-                else
-                    cout << "Failed to return book. You may not have borrowed it.\n";
-                break;
-            }
-            case 5:
-                cout << "Exiting system...\n";
-                break;
-            default:
-                cout << "Invalid choice. Please try again.\n";
+            case 1: keeper.addBook(library); break;
+            case 2: keeper.removeBook(library); break;
+            case 3: library.viewBooks(); break;
+            case 4: member.borrowBook(library, "1"); break;
+            case 5: member.returnBook(library, "1"); break;
+            case 6: cout << "Exiting...\n"; break;
+            default: cout << "Invalid choice!\n";
         }
-    } while (choice != 5);
-
-    cout << "Thank you for using the Library Management System\n";
-    cout << "Goodbye\n";
+    } while (choice != 6);
 
     return 0;
 }

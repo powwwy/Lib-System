@@ -3,10 +3,12 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
+#include <algorithm>
 
 using namespace std;
 
-const string FILE_NAME = "books.csv";
+const string BOOKS_FILE = "books.csv";
+const string MEMBERS_FILE = "members.csv";
 
 // Base Class: Person
 class Person {
@@ -44,7 +46,7 @@ public:
     Library() { loadBooksFromCSV(); }
 
     void loadBooksFromCSV() {
-        ifstream file(FILE_NAME);
+        ifstream file(BOOKS_FILE);
         if (!file.is_open()) {
             cout << "No existing book data found.\n";
             return;
@@ -65,25 +67,14 @@ public:
     }
 
     void saveBooksToCSV() {
-        ofstream file(FILE_NAME);
+        ofstream file(BOOKS_FILE);
         for (const auto &book : books) {
             file << book.book_id << "," << book.title << "," << book.author << "," << book.copies << "\n";
         }
         file.close();
     }
 
-    void addBook() {
-        string id, title, author;
-        int copies;
-        cout << "\nEnter Book ID: ";
-        cin >> id;
-        cin.ignore();
-        cout << "Enter Book Title: ";
-        getline(cin, title);
-        cout << "Enter Author: ";
-        getline(cin, author);
-        cout << "Enter Number of Copies: ";
-        cin >> copies;
+    void addBook(string id, string title, string author, int copies) {
         books.push_back(Book(id, title, author, copies));
         saveBooksToCSV();
         cout << "Book added successfully!\n";
@@ -102,6 +93,16 @@ public:
             book.displayDetails();
         }
         cout << "----------------------------------------------" << endl;
+    }
+
+    bool removeBook(string book_id) {
+        auto it = remove_if(books.begin(), books.end(), [&](Book &b) { return b.book_id == book_id; });
+        if (it != books.end()) {
+            books.erase(it);
+            saveBooksToCSV();
+            return true;
+        }
+        return false;
     }
 
     bool borrowBook(string book_id) {
@@ -131,31 +132,68 @@ public:
 class BookKeeper : public Person {
 public:
     BookKeeper(string name, string password) : Person(name, password) {}
+
+    void addBooks(Library &library) {
+        string id, title, author;
+        int copies;
+        cout << "\nEnter Book ID: ";
+        cin >> id;
+        cin.ignore();
+        cout << "Enter Book Title: ";
+        getline(cin, title);
+        cout << "Enter Author: ";
+        getline(cin, author);
+        cout << "Enter Number of Copies: ";
+        cin >> copies;
+        library.addBook(id, title, author, copies);
+    }
+
+    void viewSystem(Library &library) {
+        library.viewBooks();
+    }
+
+    void removeBook(Library &library) {
+        string book_id;
+        cout << "Enter Book ID to Remove: ";
+        cin >> book_id;
+        if (library.removeBook(book_id))
+            cout << "Book removed successfully!\n";
+        else
+            cout << "Book not found!\n";
+    }
 };
 
 // Member Class
 class Member : public Person {
 private:
+    string member_id, address, commonGenre, review;
     vector<string> booksBorrowed;
+    int booksOverdue;
 
 public:
-    Member(string name, string password) : Person(name, password) {}
+    Member(string id, string name, string password, string address)
+        : Person(name, password), member_id(id), address(address), booksOverdue(0) {}
 
-    bool borrowBook(string book_id) {
-        if (booksBorrowed.size() < 5) {
+    bool borrow(Library &library, string book_id) {
+        if (booksBorrowed.size() < 5 && library.borrowBook(book_id)) {
             booksBorrowed.push_back(book_id);
             return true;
         }
         return false;
     }
 
-    bool returnBook(string book_id) {
-        auto it = find(booksBorrowed.begin(), booksBorrowed.end(), book_id);
-        if (it != booksBorrowed.end()) {
-            booksBorrowed.erase(it);
+    bool returnBook(Library &library, string book_id) {
+        if (library.returnBook(book_id)) {
+            auto it = find(booksBorrowed.begin(), booksBorrowed.end(), book_id);
+            if (it != booksBorrowed.end()) booksBorrowed.erase(it);
             return true;
         }
         return false;
+    }
+
+    void deleteAccount() {
+        cout << "Member " << member_id << " has been deleted.\n";
+        booksBorrowed.clear();
     }
 };
 
@@ -163,58 +201,64 @@ public:
 int main() {
     Library library;
     BookKeeper keeper("Alice", "admin123");
-    Member member("Bob", "pass456");
+    Member member("1001", "Bob", "pass456", "123 Library St");
 
     int choice;
     do {
         cout << "\nLibrary Management System";
         cout << "\n1. Add Book";
         cout << "\n2. View Books";
-        cout << "\n3. Borrow Book";
-        cout << "\n4. Return Book";
-        cout << "\n5. Exit";
+        cout << "\n3. Remove Book";
+        cout << "\n4. Borrow Book";
+        cout << "\n5. Return Book";
+        cout << "\n6. Delete Member Account";
+        cout << "\n7. Exit";
         cout << "\nEnter your choice: ";
         cin >> choice;
         cin.ignore();
 
         switch (choice) {
             case 1:
-                library.addBook();
+                keeper.addBooks(library);
                 break;
             case 2:
-                library.viewBooks();
+                keeper.viewSystem(library);
                 break;
-            case 3: {
+            case 3:
+                keeper.removeBook(library);
+                break;
+            case 4: {
                 string book_id;
                 cout << "Enter Book ID to Borrow: ";
                 cin >> book_id;
-                if (member.borrowBook(book_id) && library.borrowBook(book_id))
+                if (member.borrow(library, book_id))
                     cout << "Book borrowed successfully!\n";
                 else
                     cout << "Failed to borrow book. Either it is unavailable or limit reached.\n";
                 break;
             }
-            case 4: {
+            case 5: {
                 string book_id;
                 cout << "Enter Book ID to Return: ";
                 cin >> book_id;
-                if (member.returnBook(book_id) && library.returnBook(book_id))
+                if (member.returnBook(library, book_id))
                     cout << "Book returned successfully!\n";
                 else
                     cout << "Failed to return book. You may not have borrowed it.\n";
                 break;
             }
-            case 5:
+            case 6:
+                member.deleteAccount();
+                break;
+            case 7:
                 cout << "Exiting system...\n";
                 break;
             default:
                 cout << "Invalid choice. Please try again.\n";
         }
-    } while (choice != 5);
-
-    cout << "Thank you for using the Library Management System\n";
-    cout << "Goodbye\n";
+    } while (choice != 7);
 
     return 0;
 }
+
 
