@@ -1,13 +1,9 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <vector>
 #include <algorithm>
 #include <map>
 
 using namespace std;
-
-const string FILE_NAME = "books.csv";
 
 // Base Class: Person
 class Person {
@@ -26,7 +22,6 @@ class Book {
 public:
     string book_id, name, ISBN, author, genre;
     int year, copiesAvailable, copiesBorrowed;
-    vector<string> reviews;
 
     Book(string id, string name, string isbn, string author, int year, string genre, int copiesAvailable)
         : book_id(id), name(name), ISBN(isbn), author(author), year(year), genre(genre),
@@ -39,31 +34,50 @@ public:
              << " | Available Copies: " << copiesAvailable
              << " | Borrowed Copies: " << copiesBorrowed << endl;
     }
-
-    void addReview(const string &review) {
-        reviews.push_back(review);
-    }
-
-    void displayReviews() const {
-        if (reviews.empty()) {
-            cout << "No reviews available for this book.\n";
-        } else {
-            cout << "Reviews for " << name << ":\n";
-            for (const auto &review : reviews) {
-                cout << "- " << review << endl;
-            }
-        }
-    }
 };
 
 // Library Class
 class Library {
 private:
     vector<Book> books;
+    vector<Person> users;
+    vector<string> logs;
 
 public:
-    void addBook(const Book& book) {
-        books.push_back(book);
+    void addUser(const Person &user) {
+        users.push_back(user);
+    }
+
+    void addBook() {
+        string id, name, isbn, author, genre;
+        int year, copiesAvailable;
+
+        cout << "Enter Book ID: ";
+        cin >> id;
+        cin.ignore();
+
+        cout << "Enter Book Name: ";
+        getline(cin, name);
+
+        cout << "Enter Author: ";
+        getline(cin, author);
+
+        cout << "Enter Genre: ";
+        getline(cin, genre);
+
+        cout << "Enter Year: ";
+        cin >> year;
+
+        cout << "Enter ISBN: ";
+        cin >> isbn;
+
+        cout << "Enter Available Copies: ";
+        cin >> copiesAvailable;
+        cin.ignore();
+
+        books.push_back(Book(id, name, isbn, author, year, genre, copiesAvailable));
+        logs.push_back("Book added: " + name);
+        cout << "Book added successfully!\n";
     }
 
     void viewBooks() const {
@@ -76,6 +90,28 @@ public:
             book.displayDetails();
         }
     }
+
+    void viewUsers() const {
+        if (users.empty()) {
+            cout << "No users registered.\n";
+            return;
+        }
+        cout << "\nRegistered Users:\n";
+        for (const auto &user : users) {
+            cout << "ID: " << user.getId() << " | Name: " << user.getName() << endl;
+        }
+    }
+
+    void viewLogs() const {
+        if (logs.empty()) {
+            cout << "No system logs available.\n";
+            return;
+        }
+        cout << "\nSystem Logs:\n";
+        for (const auto &log : logs) {
+            cout << log << endl;
+        }
+    }
 };
 
 // BookKeeper Class
@@ -84,6 +120,7 @@ public:
     BookKeeper(string id, string name, string password) : Person(id, name, password) {}
 };
 
+<<<<<<< HEAD
 // Member Class
 class Member : public Person {
 private:
@@ -187,104 +224,90 @@ void memberLogin() {
     }
 }
 
+=======
+>>>>>>> 2c8fcfcc264877be28bd65377a48469074479acd
 // Function for librarian login
-void librarianLogin() {
-    string username, password;
-    cout << "Enter Librarian Username: ";
-    cin >> username;
-    cout << "Enter Librarian Password: ";
+template <typename T>
+T* login(vector<T> &users, string role) {
+    string id, password;
+    cout << "Enter " << role << " ID: ";
+    cin >> id;
+    cout << "Enter Password: ";
     cin >> password;
 
-    // Simple check for librarian login (could be expanded with a database)
-    if (username == "librarian" && password == "librarianpass") {
-        cout << "Welcome, Librarian!" << endl;
-    } else {
-        cout << "Invalid login credentials. Try again!" << endl;
+    for (auto &user : users) {
+        if (user.getId() == id && user.validatePassword(password)) {
+            cout << "Login successful!\n";
+            return &user;
+        }
     }
+    cout << "Invalid credentials!\n";
+    return nullptr;
 }
 
-// Function for handling user input and actions
-void handleLoginChoice(int choice) {
-    switch (choice) {
+void librarianMenu(BookKeeper &keeper, Library &library) {
+    int choice;
+    do {
+        cout << "\nBookKeeper Menu:";
+        cout << "\n1. Add Book";
+        cout << "\n2. View Books";
+        cout << "\n3. View System Logs";
+        cout << "\n4. View Users";
+        cout << "\n5. Logout";
+        cout << "\nEnter your choice: ";
+        cin >> choice;
+        cin.ignore();
+
+        switch (choice) {
         case 1:
-            memberLogin();
+            library.addBook();
             break;
         case 2:
-            librarianLogin();
+            library.viewBooks();
             break;
         case 3:
-            cout << "Exiting the system. Goodbye!" << endl;
+            library.viewLogs();
             break;
+        case 4:
+            library.viewUsers();
+            break;
+        case 5:
+            cout << "Logging out...\n";
+            return;
         default:
-            cout << "Invalid choice! Please enter a valid option." << endl;
-            break;
-    }
+            cout << "Invalid choice. Try again.\n";
+        }
+    } while (true);
 }
-
 
 int main() {
     Library library;
-    BookKeeper keeper("1", "Alice", "admin123");
-    vector<Member> members;
+    vector<BookKeeper> bookkeepers = {BookKeeper("1001", "Myrk", "iamadmin")};
+    vector<Person> members = {Person("2001", "Alice", "mypassword"), Person("2002", "Bob", "1234")};
 
-    int userType;
+    for (auto &member : members) {
+        library.addUser(member);
+    }
+
+    int choice;
     do {
-        cout << "\nWelcome to Library Management System";
-        cout << "\n1. BookKeeper Login";
-        cout << "\n2. Member Login or Register";
+        cout << "\nLibrary System Menu:";
+        cout << "\n1. Login as Member";
+        cout << "\n2. Login as Book Keeper";
         cout << "\n3. Exit";
-        cout << "\nEnter choice: ";
-        cin >> userType;
+        cout << "\nEnter your choice: ";
+        cin >> choice;
         cin.ignore();
 
-        if (userType == 1) {
-            string id, password;
-            cout << "Enter ID: ";
-            cin >> id;
-            cout << "Enter Password: ";
-            cin >> password;
-            if (keeper.getId() == id && keeper.validatePassword(password)) {
-                cout << "BookKeeper logged in successfully." << endl;
-            } else {
-                cout << "Invalid credentials." << endl;
+        switch (choice) {
+        case 1: {
+            Person *member = login(members, "Member");
+            if (member) {
+                cout << "Welcome, " << member->getName() << "!\n";
             }
-        } else if (userType == 2) {
-            int subChoice;
-            cout << "\n1. Register as Member";
-            cout << "\n2. Login as Member";
-            cout << "\nEnter choice: ";
-            cin >> subChoice;
-            cin.ignore();
-
-            if (subChoice == 1) {
-                string id, name, password, address;
-                cout << "Enter ID: ";
-                cin >> id;
-                cin.ignore();
-                cout << "Enter Name: ";
-                getline(cin, name);
-                cout << "Enter Password: ";
-                cin >> password;
-                cout << "Enter Address: ";
-                cin.ignore();
-                getline(cin, address);
-                members.push_back(Member(id, name, password, address));
-                cout << "Registration successful!" << endl;
-            } else if (subChoice == 2) {
-                string id, password;
-                cout << "Enter ID: ";
-                cin >> id;
-                cout << "Enter Password: ";
-                cin >> password;
-                for (auto &member : members) {
-                    if (member.getId() == id && member.validatePassword(password)) {
-                        cout << "Member logged in successfully." << endl;
-                        break;
-                    }
-                }
-                cout << "Invalid credentials." << endl;
-            }
+            break;
         }
+<<<<<<< HEAD
     } while (userType != 3);
 
     Book book1("C++ Programming");
@@ -305,4 +328,20 @@ int main() {
     
     cout << "Goodbye!" << endl;
     return 0;
+=======
+        case 2: {
+            BookKeeper *keeper = login(bookkeepers, "Book Keeper");
+            if (keeper) {
+                librarianMenu(*keeper, library);
+            }
+            break;
+        }
+        case 3:
+            cout << "Exiting the system. Goodbye!\n";
+            return 0;
+        default:
+            cout << "Invalid choice! Try again.\n";
+        }
+    } while (true);
+>>>>>>> 2c8fcfcc264877be28bd65377a48469074479acd
 }
