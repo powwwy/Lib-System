@@ -25,20 +25,24 @@ public:
 class Book {
 public:
     string book_id, title, author;
-    int copies;
+    int ISBN, year, copiesAvailable, copiesBorrowed;
 
-    Book(string id, string title, string author, int copies)
-        : book_id(id), title(title), author(author), copies(copies) {}
+    Book(string id, string title, string author, int ISBN, int year, int copiesAvailable, int copiesBorrowed)
+        : book_id(id), title(title), author(author), ISBN(ISBN), year(year),
+          copiesAvailable(copiesAvailable), copiesBorrowed(copiesBorrowed) {}
 
     void displayDetails() const {
         cout << "| " << setw(4) << book_id
              << " | " << setw(22) << title
              << " | " << setw(18) << author
-             << " | " << setw(6) << copies << " |" << endl;
+             << " | " << setw(10) << ISBN
+             << " | " << setw(6) << year
+             << " | " << setw(6) << copiesAvailable
+             << " | " << setw(6) << copiesBorrowed << " |" << endl;
     }
 };
 
-// Library Class (Manages Books)
+// Library Class
 class Library {
 private:
     vector<Book> books;
@@ -53,13 +57,24 @@ public:
         string line;
         while (getline(file, line)) {
             stringstream ss(line);
-            string id, title, author, copiesStr;
+            string id, title, author, ISBNStr, yearStr, availableStr, borrowedStr;
             getline(ss, id, ',');
             getline(ss, title, ',');
             getline(ss, author, ',');
-            getline(ss, copiesStr, ',');
-            int copies = stoi(copiesStr);
-            books.push_back(Book(id, title, author, copies));
+            getline(ss, ISBNStr, ',');
+            getline(ss, yearStr, ',');
+            getline(ss, availableStr, ',');
+            getline(ss, borrowedStr, ',');
+
+            try {
+                int ISBN = stoi(ISBNStr);
+                int year = stoi(yearStr);
+                int copiesAvailable = stoi(availableStr);
+                int copiesBorrowed = stoi(borrowedStr);
+                books.push_back(Book(id, title, author, ISBN, year, copiesAvailable, copiesBorrowed));
+            } catch (invalid_argument &e) {
+                cout << "Error reading book data: " << line << endl;
+            }
         }
         file.close();
     }
@@ -67,14 +82,17 @@ public:
     void saveBooksToCSV() {
         ofstream file(BOOKS_FILE);
         for (const auto &book : books) {
-            file << book.book_id << "," << book.title << "," << book.author << "," << book.copies << "\n";
+            file << book.book_id << "," << book.title << "," << book.author << ","
+                 << book.ISBN << "," << book.year << ","
+                 << book.copiesAvailable << "," << book.copiesBorrowed << "\n";
         }
         file.close();
     }
 
     void addBook() {
         string id, title, author;
-        int copies;
+        int ISBN, year, copiesAvailable;
+
         cout << "\nEnter Book ID: ";
         cin >> id;
         cin.ignore();
@@ -82,9 +100,14 @@ public:
         getline(cin, title);
         cout << "Enter Author: ";
         getline(cin, author);
-        cout << "Enter Number of Copies: ";
-        cin >> copies;
-        books.push_back(Book(id, title, author, copies));
+        cout << "Enter ISBN: ";
+        cin >> ISBN;
+        cout << "Enter Year: ";
+        cin >> year;
+        cout << "Enter Available Copies: ";
+        cin >> copiesAvailable;
+
+        books.push_back(Book(id, title, author, ISBN, year, copiesAvailable, 0));
         saveBooksToCSV();
         cout << "Book added successfully!\n";
     }
@@ -95,13 +118,13 @@ public:
             return;
         }
 
-        cout << "\n----------------------------------------------" << endl;
-        cout << "| ID  | Title                  | Author              | Copies |" << endl;
-        cout << "----------------------------------------------" << endl;
+        cout << "\n---------------------------------------------------------------------------------\n";
+        cout << "| ID  | Title                  | Author              | ISBN       | Year  | Avail | Borrowed |\n";
+        cout << "---------------------------------------------------------------------------------\n";
         for (const auto &book : books) {
             book.displayDetails();
         }
-        cout << "----------------------------------------------" << endl;
+        cout << "---------------------------------------------------------------------------------\n";
     }
 
     bool removeBook(string book_id) {
@@ -116,8 +139,9 @@ public:
 
     bool borrowBook(string book_id) {
         for (auto &book : books) {
-            if (book.book_id == book_id && book.copies > 0) {
-                book.copies--;
+            if (book.book_id == book_id && book.copiesAvailable > 0) {
+                book.copiesAvailable--;
+                book.copiesBorrowed++;
                 saveBooksToCSV();
                 return true;
             }
@@ -127,8 +151,9 @@ public:
 
     bool returnBook(string book_id) {
         for (auto &book : books) {
-            if (book.book_id == book_id) {
-                book.copies++;
+            if (book.book_id == book_id && book.copiesBorrowed > 0) {
+                book.copiesAvailable++;
+                book.copiesBorrowed--;
                 saveBooksToCSV();
                 return true;
             }
