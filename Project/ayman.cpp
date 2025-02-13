@@ -742,3 +742,193 @@ void User :: login(){
                             }
                         }
                     }
+                    writefile(content,"all_books_data.csv");
+    content.clear();
+    readfile("issued_books_data.csv");
+    for(int i=0;i<content.size();i++){
+        if(content[i][2]==isbnno){
+            content.erase(content.begin()+i,content.begin()+i+1);
+            break;
+        }
+    }
+    writefile(content,"issued_books_data.csv");
+    content.clear();
+    if(found==0) cout<<"Book not found.\n";
+}
+void Librarian :: delete_user(string id){
+    string uid;
+    cout<<"Enter the user id of the user : ";
+    cin>>uid;
+    content.clear();
+    int found=0;
+    readfile("all_users_data.csv");
+    for(int i=0;i<content.size();i++){
+        if(content[i][1]==uid){
+            found=1;
+            content.erase(content.begin()+i,content.begin()+i+1);
+            break;
+        }
+    }
+    writefile(content,"all_users_data.csv");
+    content.clear();
+    vector<string> isbns;
+    readfile("issued_books_data.csv");
+    for(int i=0;i<content.size();i++){
+        if(content[i][0]==uid){
+            isbns.push_back(content[i][2]);
+            content.erase(content.begin()+i,content.begin()+i+1);
+            break;
+        }
+    }
+    writefile(content,"issued_books_data.csv");
+    content.clear();
+
+    readfile("all_books_data.csv");
+    for(int i=0;i<content.size();i++){
+        for(int j=0;j<isbns.size();j++){
+            if(isbns[j]==content[i][3]){
+                content[i][4]="0";
+            }
+        }
+    }
+    writefile(content,"all_books_data.csv");
+    if(found==0) cout<<"User not found.\n";
+}
+void Librarian :: update_user(string id){
+    string upid;
+    cout<<"Enter the id of the user you want to update : ";
+    cin>>upid;
+    cout<<"Enter the serial number of the field you want to update : \n";
+    cout<<"1. Password\n";
+    cout<<"2. Name of the User\n";
+    char c;
+    cin>>c;
+    content.clear();
+    int fl=0;
+    readfile("all_users_data.csv");
+    for(int i=0;i<content.size();i++){
+        if(content[i][1]==upid){
+            fl=1;
+            string new_field;
+            cout<<"Enter the new value of the field : ";
+            cin.ignore();
+            getline(cin,new_field);
+            if(c=='1'){
+                content[i][2]=new_field;
+            }
+            else if(c=='2'){
+                content[i][0]=new_field;
+            }
+            else{
+                cout<<"Invalid input!\n\n";
+            }
+            break;
+        }
+    }
+    cout<<"User updated\n";
+    writefile(content,"all_users_data.csv");
+    content.clear();
+    if(fl==0) cout<<"User was not found.\n\n";
+}
+void Librarian :: update_book(string id){
+    string isbn_no;
+    cout<<"Enter the isbn number of the book you want to update : ";
+    cin>>isbn_no;
+    cout<<"Enter the serial number of the field you want to update : \n";
+    cout<<"1. Name of the Book\n";
+    cout<<"2. Name of the Author\n";
+    cout<<"3. Name of the Publisher\n";
+    char c;
+    cin>>c;
+    content.clear();
+    int fl=0;
+    string new_field;
+    readfile("all_books_data.csv");
+    for(int i=0;i<content.size();i++){
+        if(content[i][3]==isbn_no){
+            fl=1;
+            cout<<"Enter the new value of the field : ";
+            cin.ignore();
+            getline(cin,new_field);
+            if(c=='1'){
+                content[i][0]=new_field;
+            }
+            else if(c=='2'){
+                content[i][1]=new_field;
+            }
+            else if(c=='3'){
+                content[i][2]=new_field;
+            }
+            else{
+                cout<<"Invalid input!\n\n";
+            }
+            break;
+        }
+    }
+    writefile(content,"all_books_data.csv");
+    content.clear();
+    
+    readfile("issued_books_data.csv");
+    for(int i=0;i<content.size();i++){
+        if(content[i][2]==isbn_no){
+            fl=1;
+            if(c=='1'){
+                content[i][1]=new_field;
+            }
+            break;
+        }
+    }
+    cout<<"Book updated\n";
+    writefile(content,"issued_books_data.csv");
+
+    if(fl==0) cout<<"Book was not found.\n\n";
+}
+void Librarian :: see_issued_to_user(string id,string uid){
+    vector <string> isbns;
+    content.clear();
+    int count=1;
+    readfile("issued_books_data.csv");
+    for(int i=0;i<content.size();i++){
+        if(content[i][0]==uid){
+            isbns.push_back(content[i][2]);
+        }
+    }
+    content.clear();
+    if(isbns.size()==0) cout<<"No book is issued to this user.\n\n";
+    else{
+        readfile("all_books_data.csv");
+        for(int d=0;d<isbns.size();d++){
+            for(int i=0;i<content.size();i++){
+                if(content[i][3]==isbns[d]){
+                    cout<<count<<". ";
+                    count++;
+                    for(auto y:content[i]){
+                        if(y!=content[i].back())
+                            cout<<y<<" | ";
+                        else
+                            cout<<y<<"\n";
+                    }
+                }
+            }
+        }
+        content.clear();
+    }
+}
+void Librarian :: see_issued_book(string id,string isbn){
+    content.clear();
+    int coun=0;
+    readfile("issued_books_data.csv");
+    for(int i=0;i<content.size();i++){
+        coun=1;
+        if(content[i][2]==isbn){
+            cout<<"Book with id "<<isbn<<" and name "<<content[i][1]<<" is issued to user with id : "<<content[i][0]<<"\n";
+        }
+    }
+    if(coun==0) cout<<"Book has not been issued to anyone.\n\n";
+}
+
+int main(){
+    User temp;
+    temp.display_menu();
+    return 0;
+}
