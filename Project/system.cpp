@@ -580,14 +580,14 @@ int User::calc_fine(string id, string type_user) {
 
             // Students: fine applies after 30 days
             if (type_user == "1" && days_overdue > 30)
-                fine += 2 * (days_overdue - 30);
+                fine += 5 * (days_overdue - 30);
 
             // Professors: fine applies after 60 days
             if (type_user == "2" && days_overdue > 60)
-                fine += 5 * (days_overdue - 60);
+                fine += 10 * (days_overdue - 60);
         }
     }
-    cout << "Your fine is: " << fine << "\n";
+    cout << "Your fine is: " << fine << " Shillings\n";
     return fine;
 }
 
@@ -602,7 +602,7 @@ void User::logout() {
 void User::clear_fine_amount(string id, string type_user) {
     int a = calc_fine(id, type_user);
     if (a == 0) cout << "You have no pending dues\n";
-    else cout << "Your fine of Rupees " << a << " is being cleared.\n";
+    else cout << "Your fine of Shillings " << a << " is being cleared.\n";
 }
 
 // Librarian functions to manage users
