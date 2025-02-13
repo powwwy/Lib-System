@@ -450,11 +450,11 @@ void User::issue_book(string id, string bookname, string type_user) {
 
                     // Append to issued books file
                     writefileappend(toupdate, "issued_books_data.csv");
-                    cout << "Book successfully issued\n";
+                    cout << "Book successfully issued :)\n";
                     break;
                 }
             }
-            if (fl == 0) cout << "2\n";
+            if (fl == 0) cout << "Book Not Available :(\n";
             writefile(content, "all_books_data.csv"); // Update book availability
             content.clear();
         }
@@ -476,11 +476,11 @@ void User::issue_book(string id, string bookname, string type_user) {
 
                 // Append to issued books file
                 writefileappend(toupdate, "issued_books_data.csv");
-                cout << "Book successfully issued\n";
+                cout << "Book successfully issued :)\n";
                 break;
             }
         }
-        if (fl == 0) cout << "Book not available\n";
+        if (fl == 0) cout << "Book not available :(\n";
         writefile(content, "all_books_data.csv"); // Update book availability
         content.clear();
     }
