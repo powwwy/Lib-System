@@ -632,3 +632,113 @@ void User :: login(){
                             cout<<"Please enter a valid input.\n";
                         }
                     }
+
+                    switch (c) {
+                        case '1':
+                            s.see_all_books(id);  // Call function to display all books in the library
+                            s.display_prof_menu(id);  // Return to the professor menu after displaying books
+                            break;
+                        case '2':
+                            s.see_issued_books(id);  // Call function to display books issued by the professor
+                            s.display_prof_menu(id);  // Return to the professor menu
+                            break;
+                        case '3':
+                            cout << "Enter the name of the book you want to check : ";
+                            cin >> book_name;  // Get the name of the book to check availability
+                            s.check_available(id, book_name);  // Call function to check if the book is available
+                            s.display_prof_menu(id);  // Return to the professor menu
+                            break;
+                        case '4':
+                            s.calc_fine(id, "2");  // Call function to calculate and display the fine amount
+                            s.display_prof_menu(id);  // Return to the professor menu
+                            break;
+                        case '5':
+                            cout << "Enter the name of the book you want to issue : ";
+                            cin >> book_name;  // Get the name of the book to issue
+                            s.issue_book(id, book_name, "2");  // Call function to issue the book
+                            s.display_prof_menu(id);  // Return to the professor menu
+                            break;
+                        case '6':
+                            cout << "Enter the isbn code of the book you want to return : ";
+                            cin >> isbncode;  // Get the ISBN code of the book to return
+                            s.return_book(id, isbncode);  // Call function to return the book
+                            s.display_prof_menu(id);  // Return to the professor menu
+                            break;
+                        case '7':
+                            s.clear_fine_amount(id, "2");  // Call function to clear the fine amount
+                            s.display_prof_menu(id);  // Return to the professor menu
+                            break;
+                        case '8':
+                            logout();  // Call function to log out the professor
+                            break;
+                    }
+                    
+                    // Function to display the main menu for the library management system
+                    void User::display_menu() {
+                        char c;
+                        cout << "---------------------------------------------------------------------\n";
+                        cout << "\n\nWelcome to the library management system!\n\n";
+                        cout << "1. Press 1 to log in : \n";
+                        cout << "2. Press 2 to exit\n";
+                        cout << "---------------------------------------------------------------------\n";
+                        cin >> c;  // Get user input for menu selection
+                    
+                        if (c == '1') {  // If the user chooses to log in
+                            User u;  // Create a User object
+                            u.login();  // Call the login function
+                        } else {  // If the user chooses to exit
+                            cout << "Thanks for using the system !";
+                            exit(1);  // Exit the program
+                        }
+                    }
+                    
+                    // Function to handle user login
+                    void User::login() {
+                        string id, password;
+                        cout << "Enter your id : ";
+                        cin >> id;  // Get the user's ID
+                        cout << "Enter the password : ";
+                        cin >> password;  // Get the user's password
+                    
+                        vector<string> words_in_a_row;  // Vector to store data from a row in the CSV file
+                        string line_in_csv, word;  // Variables to read lines and words from the CSV file
+                        fstream file("all_users_data.csv", ios::in);  // Open the CSV file for reading
+                        int count = 0;  // Counter to track if the ID and password are found
+                    
+                        if (file.is_open()) {  // Check if the file was successfully opened
+                            while (getline(file, line_in_csv)) {  // Read each line from the file
+                                words_in_a_row.clear();  // Clear the vector for the new line
+                                stringstream str(line_in_csv);  // Convert the line into a string stream
+                                while (getline(str, word, ',')) {  // Split the line by commas
+                                    words_in_a_row.push_back(word);  // Add each word to the vector
+                                }
+                    
+                                if (words_in_a_row[1] == id) {  // Check if the ID matches
+                                    count = 1;  // Set count to 1 if the ID is found
+                                    if (words_in_a_row[2] == password) {  // Check if the password matches
+                                        count++;  // Set count to 2 if the password is correct
+                                        break;  // Exit the loop if login is successful
+                                    } else {  // If the password is incorrect
+                                        while (password != words_in_a_row[2]) {  // Loop until the correct password is entered
+                                            cout << "You entered the wrong password. Press 1 to reenter the password and 2 to exit\n";
+                                            char c;
+                                            cin >> c;  // Get user input for retrying or exiting
+                                            if (c == '1') {  // If the user chooses to retry
+                                                cout << "Enter the password : ";
+                                                cin >> password;  // Get the password again
+                                                if (password == words_in_a_row[2]) {  // Check if the password is correct
+                                                    count++;  // Set count to 2 if the password is correct
+                                                    break;  // Exit the loop
+                                                }
+                                            } else if (c == '2') {  // If the user chooses to exit
+                                                cout << "Exiting...";
+                                                return;  // Exit the function
+                                            } else {  // If the user enters an invalid input
+                                                cout << "Please enter a valid input.\n";
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
