@@ -221,11 +221,40 @@ public:
     }
 };
 
+// Function to Load Members from CSV
+vector<Member> loadMembersFromCSV() {
+    vector<Member> members;
+    ifstream file(MEMBERS_FILE);
+    if (!file.is_open()) return members;
+
+    string line;
+    while (getline(file, line)) {
+        stringstream ss(line);
+        string id, name, password, address;
+        getline(ss, id, ',');
+        getline(ss, name, ',');
+        getline(ss, password, ',');
+        getline(ss, address, ',');
+        members.push_back(Member(id, name, password, address));
+    }
+    file.close();
+    return members;
+}
+
+// Function to Save Members to CSV
+void saveMembersToCSV(const vector<Member> &members) {
+    ofstream file(MEMBERS_FILE);
+    for (const auto &member : members) {
+        file << member.member_id << "," << member.getName() << "," << member.getPassword() << "," << member.address << "\n";
+    }
+    file.close();
+}
+
 // Main Function
 int main() {
     Library library;
     BookKeeper keeper;
-    vector<Member> members;
+    vector<Member> members = loadMembersFromCSV();
 
     int choice;
     do {
@@ -250,9 +279,22 @@ int main() {
             cout << "Enter Password: "; cin >> pass;
             cout << "Enter Address: "; cin >> addr;
             members.push_back(Member(id, name, pass, addr));
+            saveMembersToCSV(members);
             cout << "Member registered successfully!\n";
-        } else if (choice == 3 && !members.empty()) {
-            members[0].memberMenu(library);
+        } else if (choice == 3) {
+            string id, pass;
+            cout << "Enter Member ID: "; cin >> id;
+            cout << "Enter Password: "; cin >> pass;
+
+            bool loggedIn = false;
+            for (auto &member : members) {
+                if (member.member_id == id && member.getPassword() == pass) {
+                    member.memberMenu(library);
+                    loggedIn = true;
+                    break;
+                }
+            }
+            if (!loggedIn) cout << "Invalid ID or Password!\n";
         }
     } while (choice != 4);
 

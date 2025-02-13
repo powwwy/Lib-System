@@ -118,7 +118,7 @@ private:
 
 public:
     Book(int serialNumber, string title, string author, string ISBN, int year, int totalCopies)
-        : serialNumber(serialNumber), title(title), author(author), ISBN(ISBN), year(year), totalCopies(totalCopies), copiesBorrowed(0) {}
+        : serialNumber(serialNumber), title(title), author(author), ISBN(ISBN), year(year), totalCopies(totalCopies), copiesBorrowed() {}
 
     void addEntity() override {
         cout << "Book added: " << title << endl;
@@ -163,7 +163,9 @@ public:
     int getCopiesAvailable() const {
         return totalCopies - copiesBorrowed;
     }
-
+    string getBorrowedBooks() const {
+        return to_string(serialNumber) + "," + title + "," + author + "," + ISBN + "," + to_string(year) + "," + to_string(totalCopies) + "," + to_string(copiesBorrowed);
+    }
     int getCopiesBorrowed() const {
         return copiesBorrowed;
     }
@@ -529,11 +531,11 @@ void memberMenu(vector<Book>& books, vector<Member>& members) {
     cout << "Enter Member ID: ";
     cin >> memberID;
 
-    auto memberIt = find_if(members.begin(), members.end(), [memberID](const Member& m) {
+    auto it = find_if(members.begin(), members.end(), [memberID](const Member& m) {
         return m.getID() == memberID;
     });
 
-    if (memberIt == members.end()) {
+    if (it == members.end()) {
         cout << "Member not found!\n";
         return;
     }
@@ -558,19 +560,19 @@ void memberMenu(vector<Book>& books, vector<Member>& members) {
                     break;
                 }
 
-                auto bookIt = find_if(books.begin(), books.end(), [bookID](const Book& b) {
+                auto it = find_if(books.begin(), books.end(), [bookID](const Book& b) {
                     return b.getSerialNumber() == bookID;
                 });
 
-                if (bookIt != books.end()) {
+                if (it != books.end()) {
                     // Check if member has already borrowed 5 books
-                    if (memberIt->getBorrowedBooks().size() >= 5) {
+                    if (it->getCopiesBorrowed()>= 5) {
                         cout << "You cannot borrow more than 5 books!\n";
                         break;
                     }
 
                     // Check if member has already borrowed 3 copies of the same book
-                    int count = count_if(memberIt->getBorrowedBooks().begin(), memberIt->getBorrowedBooks().end(), [bookID](int id) {
+                    int count = count_if(it->getBorrowedBooks().begin(), it->getBorrowedBooks().end(), [bookID](int id) {
                         return id == bookID;
                     });
 
@@ -579,9 +581,9 @@ void memberMenu(vector<Book>& books, vector<Member>& members) {
                         break;
                     }
 
-                    if (bookIt->borrowCopy(numCopies)) {
+                    if (it->borrowCopy(numCopies)) {
                         for (int i = 0; i < numCopies; i++) {
-                            memberIt->borrowBook(bookID);
+                            it->borrowCopy(bookID);
                         }
                         saveBooks(books);
                         saveMembers(members);
@@ -602,14 +604,14 @@ void memberMenu(vector<Book>& books, vector<Member>& members) {
                 cout << "Enter Number of Copies to Return: ";
                 cin >> numCopies;
 
-                auto bookIt = find_if(books.begin(), books.end(), [bookID](const Book& b) {
+                auto it = find_if(books.begin(), books.end(), [bookID](const Book& b) {
                     return b.getSerialNumber() == bookID;
                 });
 
-                if (bookIt != books.end()) {
-                    bookIt->returnCopy(numCopies);
+                if (it != books.end()) {
+                    it->returnCopy(numCopies);
                     for (int i = 0; i < numCopies; i++) {
-                        memberIt->returnBook(bookID);
+                        it->returnCopy(bookID);
                     }
                     saveBooks(books);
                     saveMembers(members);
@@ -629,20 +631,20 @@ void memberMenu(vector<Book>& books, vector<Member>& members) {
                 cout << "Enter Review: ";
                 getline(cin, review);
 
-                memberIt->addReview(bookID, review);
+                it->addReview(bookID, review);
                 saveMembers(members);
                 cout << "Review added successfully!\n";
                 break;
             }
             case 4: {
                 cout << "Borrowed Books:\n";
-                for (int bookID : memberIt->getBorrowedBooks()) {
-                    auto bookIt = find_if(books.begin(), books.end(), [bookID](const Book& b) {
+                for (int bookID : it->getBorrowedBooks()) {
+                    auto it = find_if(books.begin(), books.end(), [bookID](const Book& b) {
                         return b.getSerialNumber() == bookID;
                     });
 
-                    if (bookIt != books.end()) {
-                        cout << "Title: " << bookIt->getTitle() << ", Copies Borrowed: " << count(memberIt->getBorrowedBooks().begin(), memberIt->getBorrowedBooks().end(), bookID) << endl;
+                    if (it != books.end()) {
+                        cout << "Title: " << it->getTitle() << ", Copies Borrowed: " << count(it->getBorrowedBooks().begin(), it->getBorrowedBooks().end(), bookID) << endl;
                     }
                 }
                 break;
