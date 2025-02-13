@@ -330,3 +330,304 @@ void User::login() {
         }
     }
 }
+#include <bits/stdc++.h>
+#include <chrono>
+using namespace std;
+
+vector<vector<string>> content;
+vector<string> toupdate;
+
+void readfile(string fname){ //reference : https://java2blog.com/read-csv-file-in-cpp/
+    vector<string> row;
+    string line, word;
+
+    fstream file (fname,ios::in);
+    if(file.is_open()){
+        while(getline(file, line)){
+            row.clear();
+            stringstream str(line);
+            while(getline(str, word, ',')) row.push_back(word);
+            content.push_back(row);
+        }
+    }
+    else cout<<"Could not open the file\n";
+}
+void writefile(vector<vector<string>> par, string fname){  
+    fstream fout(fname,ios::out);
+    for(auto x:par){
+        for(auto y:x){
+            fout<<y;
+            if(y!=x.back()) fout<<",";
+        }
+        fout<<"\n";
+    }
+
+}
+void writefileappend(vector<string> par, string fname){  
+    fstream fout(fname,ios::out | ios::app);
+    for(auto x:par){
+        fout<<x;
+        if(x!=par.back()) fout<<",";
+    }
+    fout<<"\n";
+}
+void printdata(vector<vector<string>> par){
+    int c=1;
+    for(auto x:par){
+        cout<<c<<". ";
+        for(auto y:x){
+            cout<<y;
+            if(y!=x.back()) cout<<" | ";
+        }
+        c++;
+        cout<<"\n";
+    }
+}
+void printdata_notpassword(vector<vector<string>> par){
+    int c=1;
+    for(auto x:par){
+        cout<<c<<". ";
+        cout<<x[0]<<" | "<<x[1]<<" | "<<x[3]<<'\n';
+        c++;
+    }
+}
+
+class User{
+    private:
+        string password;
+    public:
+        string name;
+        string id;
+        vector<string> isbns_issued;
+        void display_menu();
+        void login();
+        void see_all_books(string id);
+        void see_issued_books(string id);
+        void logout();
+        void issue_book(string id, string bookname,string type_user);
+        void return_book(string id,string isbncode);
+        void check_available(string id, string bookname);
+        int calc_fine(string id,string type_user);
+        void clear_fine_amount(string id,string type_user);
+        void User_add(string id);
+        void User_update(string id);
+        void User_delete(string id);
+        void User_search(string id);
+};
+class Book{
+    public:
+        string title;
+        string author;
+        string isbn;
+        string publication;
+        int is_issued;
+    void Book_request(string id,string bookname,string type_user);
+    void Show_duedate(string isbn_no);
+    void Book_add(string id);
+    void Book_update(string id);
+    void Book_delete(string id);
+    void Book_search(string id);
+    
+};
+class Student : public User{
+    public:
+        int Fine_amount;
+        void display_student_menu(string id);
+};
+class Professor : public User{
+    public:
+        int Fine_amount;
+    public:
+        void display_prof_menu(string id);
+
+};
+class Librarian : public User{
+    public:
+        void display_lib_menu(string id);
+        void see_all_users(string id);
+        void see_all_books(string id);
+        void add_user(string id);
+        void update_user(string id);
+        void delete_user(string id);
+        void add_book(string id);
+        void update_book(string id);
+        void delete_book(string id);
+        void see_issued_to_user(string id,string uid);
+        void see_issued_book(string id,string isbn);
+        
+};
+
+void Student :: display_student_menu(string id){
+    cout<<"---------------------------------------------------------------------\n";
+    cout<<"\nYou have been logged in as Student\n";
+    cout<<"Press 1 to see all the books\n";
+    cout<<"Press 2 to view books issued by you\n";
+    cout<<"Press 3 to check if a book is available for issue or not\n";
+    cout<<"Press 4 to view the fine\n";
+    cout<<"Press 5 to issue a book\n";
+    cout<<"Press 6 to return a book\n";
+    cout<<"Press 7 to clear your fine\n";
+    cout<<"Press 8 to logout\n";
+    cout<<"---------------------------------------------------------------------\n";
+    char c;
+    cin>>c;
+    string book_name,isbncode;
+    Student s;
+    Book b;
+    switch(c){
+        case '1':
+            s.see_all_books(id);
+            s.display_student_menu(id);
+            break;
+        case '2':
+            s.see_issued_books(id);
+            s.display_student_menu(id);
+            break;
+        case '3':
+            cout<<"Enter the name of the book you want to check : ";
+            cin.ignore();
+            getline(cin,book_name);
+            s.check_available(id,book_name);
+            s.display_student_menu(id);
+            break;
+        case '4':
+            s.calc_fine(id,"1");
+            s.display_student_menu(id);
+            break;
+        case '5':
+            cout<<"Enter the name of the book you want to issue : ";
+            cin.ignore();
+            getline(cin,book_name);
+            b.Book_request(id,book_name,"1");
+            s.display_student_menu(id);            
+            break;
+        case '6':
+            cout<<"Enter the isbn code of the book you want to return : ";
+            cin>>isbncode;
+            s.return_book(id,isbncode);
+            s.display_student_menu(id);
+            break;
+        case '7':
+            s.clear_fine_amount(id,"1");
+            s.display_student_menu(id);
+            break;           
+        case '8':
+            logout();
+            break;
+    }
+}
+
+void Professor :: display_prof_menu(string id){
+    cout<<"---------------------------------------------------------------------\n";
+    cout<<"\nYou have been logged in as Lecturer\n";
+    cout<<"Press 1 to see all the books\n";
+    cout<<"Press 2 to view books issued by you\n";
+    cout<<"Press 3 to check if a book is available for issue or not\n";
+    cout<<"Press 4 to view the fine\n";
+    cout<<"Press 5 to issue a book\n";
+    cout<<"Press 6 to return a book\n";
+    cout<<"Press 7 to clear your fine\n";
+    cout<<"Press 8 to logout\n";
+    cout<<"---------------------------------------------------------------------\n";
+    char c;
+    cin>>c;
+    string book_name,isbncode;
+    Professor s;
+    switch(c){
+        case '1':
+            s.see_all_books(id);
+            s.display_prof_menu(id);
+            break;
+        case '2':
+            s.see_issued_books(id);
+            s.display_prof_menu(id);
+            break;
+        case '3':
+            cout<<"Enter the name of the book you want to check : ";
+            cin>>book_name;
+            s.check_available(id,book_name);
+            s.display_prof_menu(id);
+            break;
+        case '4':
+            s.calc_fine(id,"2");
+            s.display_prof_menu(id);
+            break;
+        case '5':
+            cout<<"Enter the name of the book you want to issue : ";
+            cin>>book_name;
+            s.issue_book(id,book_name,"2");
+            s.display_prof_menu(id);            
+            break;
+        case '6':
+            cout<<"Enter the isbn code of the book you want to return : ";
+            cin>>isbncode;
+            s.return_book(id,isbncode);
+            s.display_prof_menu(id);
+            break;
+        case '7':
+            s.clear_fine_amount(id,"2");
+            s.display_prof_menu(id);
+            break;
+        case '8':
+            logout();
+            break;
+    }
+}
+
+void User :: display_menu(){
+    char c;
+    cout<<"---------------------------------------------------------------------\n";
+    cout<<"\n\nWelcome to the library management system!\n\n";
+    cout<<"1. Press 1 to log in : \n";
+    cout<<"2. Press 2 to exit\n";
+    cout<<"---------------------------------------------------------------------\n";
+    cin>>c;
+    if(c=='1'){ //logs in a user 
+        User u;
+        u.login();
+    }
+    else{
+        cout<<"Thanks for using the system !";
+        exit(1);
+    }
+}
+void User :: login(){
+
+    string id,password;
+    cout<<"Enter your id : ";
+    cin>>id;
+    cout<<"Enter the password : ";
+    cin>>password;
+    vector<string> words_in_a_row;
+    string line_in_csv,word;
+    fstream file("all_users_data.csv",ios::in);
+    int count=0;
+    if(file.is_open()){
+        while(getline(file,line_in_csv)){
+            words_in_a_row.clear();
+            stringstream str(line_in_csv);
+            while(getline(str,word,',')) words_in_a_row.push_back(word);
+            if(words_in_a_row[1]==id){
+                count=1;
+                if(words_in_a_row[2]==password){
+                    count++;
+                    break;
+                }
+                else{
+                    while(password!=words_in_a_row[2]){
+                        cout<<"You entered the wrong password. Press 1 to reenter the password and 2 to exit\n";
+                        char c;
+                        cin>>c;
+                        if(c=='1'){
+                            cout<<"Enter the password : ";
+                            cin>>password;
+                            if(password==words_in_a_row[2]) count++;
+                        }
+                        else if(c=='2'){
+                            cout<<"Exiting...";
+                            return;
+                        }
+                        else{
+                            cout<<"Please enter a valid input.\n";
+                        }
+                    }
