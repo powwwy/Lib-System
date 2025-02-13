@@ -133,7 +133,7 @@ public:
 void librarianLogin(BookKeeper &keeper, Library &library) {
     int choice;
     do {
-        cout << "\nBookKeeper Menu:";
+        cout << "\nBook Keeper Menu:";
         cout << "\n1. Add Book";
         cout << "\n2. View Books";
         cout << "\n3. Logout";
