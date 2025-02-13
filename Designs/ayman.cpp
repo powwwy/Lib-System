@@ -450,6 +450,8 @@ void User ::login()
                             cout << "Please enter a valid input.\n";
                         }
                     }
+<<<<<<< HEAD
+=======
 
                     switch (c)
                     {
@@ -1006,4 +1008,5 @@ int main()
                     User temp;
                     temp.display_menu();
                     return 0;
+>>>>>>> c7d87ffcfe46f5803614086331da4ce658cba46c
                 }
