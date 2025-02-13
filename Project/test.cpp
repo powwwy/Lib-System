@@ -672,7 +672,7 @@ void Librarian :: display_lib_menu(string id){
     cout<<"Press 9 to view all users\n";
     cout<<"Press 0 to view all books\n";
     cout<<"Press d to show due date of a book\n";
-    cout<<"Press l to logout\n";
+    cout<<"Press a to logout\n";
     cout<<"---------------------------------------------------------------------\n";
     char c;
     cin>>c;
@@ -731,7 +731,7 @@ void Librarian :: display_lib_menu(string id){
             b.Show_duedate(isbn);
             l.display_lib_menu(id);
             break;
-        case 'l':
+        case 'a':
             logout();
             l.display_lib_menu(id);
             break;
